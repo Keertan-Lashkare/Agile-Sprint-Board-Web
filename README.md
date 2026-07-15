@@ -1,59 +1,121 @@
-# Frontend
+# Agile Sprint Board — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.19.
+Angular 19 frontend for the BiCXO Sprint Board. A Kanban-style task board with drag & drop, infinite scroll, and team task assignment.
 
-## Development server
+**Backend Repo:** https://github.com/Keertan-Lashkare/Agile-Sprint-Board-Api
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
-```
+## Prerequisites
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Make sure these are installed:
 
-## Code scaffolding
+- [Node.js](https://nodejs.org/) v18 or higher
+- [npm](https://www.npmjs.com/) v9 or higher
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+---
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Step 1 — Install Dependencies
 
 ```bash
-ng generate --help
+npm install
 ```
 
-## Building
+---
 
-To build the project run:
+## Step 2 — Configure API URL
+
+Open `src/environments/environment.ts` and make sure the API URL points to your backend:
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:5000/api'
+};
+```
+
+> Make sure the backend server is running before starting the frontend.
+
+---
+
+## Step 3 — Start the App
 
 ```bash
-ng build
+npm run dev
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+App runs at → **http://localhost:4200**
 
-## Running unit tests
+---
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Step 4 — Build for Production
 
 ```bash
-ng test
+npm run build
 ```
 
-## Running end-to-end tests
+Output goes to the `dist/` folder.
 
-For end-to-end (e2e) testing, run:
+---
+
+## How to Use
+
+1. **Register** a new account on the register page
+2. **Login** with your credentials
+3. **Create tasks** using the `+ Add Task` button
+4. **Assign** tasks to teammates from the task form
+5. **Drag and drop** tasks between columns
+6. **Search** tasks using the search bar
+7. **Filter** by priority or "Assigned to Me"
+8. **Scroll down** in any column to load more tasks
+
+---
+
+## Features
+
+| Feature | Details |
+|---------|---------|
+| Authentication | Register, Login, JWT-based sessions |
+| Kanban Board | To Do, In Progress, Done columns |
+| Drag & Drop | Move tasks between columns |
+| Task Labels | "My Task" (blue) / "Assigned by Name" (amber) |
+| Permissions | Only creators can delete; assignees can edit & drag |
+| Search | Live search across title and description |
+| Filters | Filter by priority or assigned user |
+| Infinite Scroll | Scroll to bottom of column to load more |
+
+---
+
+## Running Tests
 
 ```bash
-ng e2e
+npm run test
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+## Project Structure
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```
+src/
+├── app/
+│   ├── components/
+│   │   ├── board/          # Kanban board (main page)
+│   │   ├── login/          # Login page
+│   │   ├── register/       # Register page
+│   │   └── task-modal/     # Create / Edit task modal
+│   ├── guards/             # Route protection (auth guard)
+│   └── services/           # API service calls (auth, tasks)
+├── environments/           # API URL config
+└── styles.css              # Global styles
+```
+
+---
+
+## Tech Stack
+
+- **Framework:** Angular 19
+- **Language:** TypeScript
+- **Drag & Drop:** Angular CDK
+- **Styling:** Vanilla CSS (Inter font)
+- **Testing:** Vitest
