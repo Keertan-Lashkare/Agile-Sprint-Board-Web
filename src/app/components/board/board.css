@@ -240,6 +240,27 @@
   color: #ef4444;
 }
 
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-edit {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.15s ease-in-out;
+}
+
+.btn-edit:hover {
+  color: #111827;
+}
+
 .card-title {
   font-size: 14px;
   font-weight: 600;

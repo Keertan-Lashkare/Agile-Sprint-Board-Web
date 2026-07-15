@@ -49,7 +49,10 @@
         <div *ngFor="let task of getPaginatedTasks(todoTasks, todoPage)" cdkDrag [cdkDragData]="task" class="task-card">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
-            <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+            <div class="card-actions">
+              <button (click)="onEditTask(task)" class="btn-edit">✎</button>
+              <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+            </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
           <p class="card-description">{{ task.description }}</p>
@@ -86,7 +89,10 @@
         <div *ngFor="let task of getPaginatedTasks(inProgressTasks, inProgressPage)" cdkDrag [cdkDragData]="task" class="task-card">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
-            <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+            <div class="card-actions">
+              <button (click)="onEditTask(task)" class="btn-edit">✎</button>
+              <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+            </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
           <p class="card-description">{{ task.description }}</p>
@@ -123,7 +129,10 @@
         <div *ngFor="let task of getPaginatedTasks(doneTasks, donePage)" cdkDrag [cdkDragData]="task" class="task-card">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
-            <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+            <div class="card-actions">
+              <button (click)="onEditTask(task)" class="btn-edit">✎</button>
+              <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+            </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
           <p class="card-description">{{ task.description }}</p>
@@ -148,6 +157,7 @@
 
 <app-task-modal
   *ngIf="showModal"
+  [editTask]="selectedTask"
   (close)="onCloseModal()"
   (taskCreated)="onTaskCreated()"
 ></app-task-modal>
