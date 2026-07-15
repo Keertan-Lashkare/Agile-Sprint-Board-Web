@@ -46,19 +46,20 @@
         (cdkDropListDropped)="onDrop($event)"
         class="task-list"
       >
-        <div *ngFor="let task of getPaginatedTasks(todoTasks, todoPage)" cdkDrag [cdkDragData]="task" class="task-card">
+        <div *ngFor="let task of getPaginatedTasks(todoTasks, todoPage)" cdkDrag [cdkDragData]="task" [cdkDragDisabled]="!canDrag(task)" class="task-card" [class.locked-card]="!canDrag(task)" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
-            <div class="card-actions">
+            <div class="card-actions" *ngIf="canDrag(task)">
               <button (click)="onEditTask(task)" class="btn-edit">✎</button>
               <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
             </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
           <p class="card-description">{{ task.description }}</p>
-          <div class="card-footer" *ngIf="task.dueDate || task.assignee">
+          <div class="card-footer">
             <span class="due-date" *ngIf="task.dueDate">{{ task.dueDate }}</span>
-            <span class="assignee" *ngIf="task.assignee">{{ task.assignee.name }}</span>
+            <span class="card-type-label mine" *ngIf="task.createdBy === currentUserId">My Task</span>
+            <span class="card-type-label assigned" *ngIf="task.createdBy !== currentUserId && task.assignedTo === currentUserId">Assigned by {{ task.creator?.name || 'Someone' }}</span>
           </div>
         </div>
       </div>
@@ -86,19 +87,20 @@
         (cdkDropListDropped)="onDrop($event)"
         class="task-list"
       >
-        <div *ngFor="let task of getPaginatedTasks(inProgressTasks, inProgressPage)" cdkDrag [cdkDragData]="task" class="task-card">
+        <div *ngFor="let task of getPaginatedTasks(inProgressTasks, inProgressPage)" cdkDrag [cdkDragData]="task" [cdkDragDisabled]="!canDrag(task)" class="task-card" [class.locked-card]="!canDrag(task)" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
-            <div class="card-actions">
+            <div class="card-actions" *ngIf="canDrag(task)">
               <button (click)="onEditTask(task)" class="btn-edit">✎</button>
               <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
             </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
           <p class="card-description">{{ task.description }}</p>
-          <div class="card-footer" *ngIf="task.dueDate || task.assignee">
+          <div class="card-footer">
             <span class="due-date" *ngIf="task.dueDate">{{ task.dueDate }}</span>
-            <span class="assignee" *ngIf="task.assignee">{{ task.assignee.name }}</span>
+            <span class="card-type-label mine" *ngIf="task.createdBy === currentUserId">My Task</span>
+            <span class="card-type-label assigned" *ngIf="task.createdBy !== currentUserId && task.assignedTo === currentUserId">Assigned by {{ task.creator?.name || 'Someone' }}</span>
           </div>
         </div>
       </div>
@@ -126,18 +128,16 @@
         (cdkDropListDropped)="onDrop($event)"
         class="task-list"
       >
-        <div *ngFor="let task of getPaginatedTasks(doneTasks, donePage)" cdkDrag [cdkDragData]="task" class="task-card done-card">
+        <div *ngFor="let task of getPaginatedTasks(doneTasks, donePage)" cdkDrag [cdkDragData]="task" class="task-card done-card" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
-            <div class="card-actions">
-              <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
-            </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
           <p class="card-description">{{ task.description }}</p>
-          <div class="card-footer" *ngIf="task.dueDate || task.assignee">
+          <div class="card-footer">
             <span class="due-date" *ngIf="task.dueDate">{{ task.dueDate }}</span>
-            <span class="assignee" *ngIf="task.assignee">{{ task.assignee.name }}</span>
+            <span class="card-type-label mine" *ngIf="task.createdBy === currentUserId">My Task</span>
+            <span class="card-type-label assigned" *ngIf="task.createdBy !== currentUserId && task.assignedTo === currentUserId">Assigned by {{ task.creator?.name || 'Someone' }}</span>
           </div>
         </div>
       </div>

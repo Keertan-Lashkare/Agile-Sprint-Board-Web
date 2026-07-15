@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DragDropModule, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
@@ -6,6 +6,7 @@ import { Task, TaskService } from '../../services/task';
 import { AuthService } from '../../services/auth';
 import { ToastService } from '../../services/toast';
 import { TaskModalComponent } from '../task-modal/task-modal';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-board',
@@ -13,7 +14,7 @@ import { TaskModalComponent } from '../task-modal/task-modal';
   styleUrls: ['./board.css'],
   imports: [CommonModule, DragDropModule, TaskModalComponent]
 })
-export class BoardComponent implements OnInit {
+export class BoardComponent implements OnInit, OnDestroy {
   todoTasks: Task[] = [];
   inProgressTasks: Task[] = [];
   doneTasks: Task[] = [];
@@ -32,20 +33,33 @@ export class BoardComponent implements OnInit {
   donePage = 1;
   pageSize = 4;
 
+  private userSub!: Subscription;
+
   constructor(
     private taskService: TaskService,
     private authService: AuthService,
     private toastService: ToastService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    const currentUser = this.authService.currentUserValue;
-    if (currentUser) {
-      this.userName = currentUser.name;
-      this.currentUserId = currentUser.id;
+    this.userSub = this.authService.currentUser$.subscribe({
+      next: (user) => {
+        if (user) {
+          this.userName = user.name;
+          this.currentUserId = user.id;
+          this.loadTasks();
+          this.cdr.markForCheck();
+        }
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.userSub) {
+      this.userSub.unsubscribe();
     }
-    this.loadTasks();
   }
 
   loadTasks(): void {
@@ -55,6 +69,7 @@ export class BoardComponent implements OnInit {
         this.inProgressTasks = tasks.filter(t => t.column === 'in_progress');
         this.doneTasks = tasks.filter(t => t.column === 'done');
         this.clampPages();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.toastService.show('Failed to load tasks.', 'error');
@@ -77,6 +92,7 @@ export class BoardComponent implements OnInit {
   onDrop(event: CdkDragDrop<Task[]>): void {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+      this.cdr.markForCheck();
       return;
     }
 
@@ -93,14 +109,19 @@ export class BoardComponent implements OnInit {
     targetArray.unshift(movedTask);
 
     this.clampPages();
+    this.cdr.markForCheck();
 
     this.taskService.updateTask(task.id, { column: newColumn }).subscribe({
+      next: () => {
+        this.cdr.markForCheck();
+      },
       error: () => {
         targetArray.splice(targetArray.indexOf(movedTask), 1);
         sourceArray.splice(sourceIndex, 0, movedTask);
         movedTask.column = task.column;
         this.toastService.show('Failed to move task.', 'error');
         this.clampPages();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -116,6 +137,7 @@ export class BoardComponent implements OnInit {
     this.todoPage = 1;
     this.inProgressPage = 1;
     this.donePage = 1;
+    this.cdr.markForCheck();
   }
 
   onPriorityFilterChange(event: Event): void {
@@ -123,6 +145,7 @@ export class BoardComponent implements OnInit {
     this.todoPage = 1;
     this.inProgressPage = 1;
     this.donePage = 1;
+    this.cdr.markForCheck();
   }
 
   onToggleFilter(value: 'all' | 'me'): void {
@@ -130,10 +153,15 @@ export class BoardComponent implements OnInit {
     this.todoPage = 1;
     this.inProgressPage = 1;
     this.donePage = 1;
+    this.cdr.markForCheck();
   }
 
   getFilteredTasks(tasks: Task[]): Task[] {
     return tasks.filter(task => {
+      const isOwnerOrAssignee = task.createdBy === this.currentUserId || task.assignedTo === this.currentUserId;
+      if (!isOwnerOrAssignee) {
+        return false;
+      }
       const matchesSearch = task.title.toLowerCase().includes(this.searchText) ||
                             task.description.toLowerCase().includes(this.searchText);
       const matchesPriority = this.selectedPriority === 'all' || task.priority === this.selectedPriority;
@@ -151,23 +179,31 @@ export class BoardComponent implements OnInit {
     return Math.ceil(this.getFilteredTasks(tasks).length / this.pageSize) || 1;
   }
 
+  canDrag(task: Task): boolean {
+    return task.createdBy === this.currentUserId || task.assignedTo === this.currentUserId;
+  }
+
   onAddTask(): void {
     this.selectedTask = null;
     this.showModal = true;
+    this.cdr.markForCheck();
   }
 
   onEditTask(task: Task): void {
     this.selectedTask = task;
     this.showModal = true;
+    this.cdr.markForCheck();
   }
 
   onCloseModal(): void {
     this.showModal = false;
+    this.cdr.markForCheck();
   }
 
   onTaskCreated(): void {
     this.showModal = false;
     this.loadTasks();
+    this.cdr.markForCheck();
   }
 
   onDeleteTask(id: number): void {
@@ -178,6 +214,7 @@ export class BoardComponent implements OnInit {
         this.doneTasks = this.doneTasks.filter(t => t.id !== id);
         this.clampPages();
         this.toastService.show('Task deleted.', 'success');
+        this.cdr.markForCheck();
       },
       error: () => {
         this.toastService.show('Failed to delete task.', 'error');

@@ -196,13 +196,40 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.done-card {
-  opacity: 0.75;
+
+
+.locked-card {
+  cursor: default;
+  opacity: 0.6;
+  border-style: dashed;
 }
 
-.done-card .card-title {
-  text-decoration: line-through;
-  color: #6b7280;
+.card-mine {
+  border-left: 3px solid #6366f1;
+}
+
+.card-assigned {
+  border-left: 3px solid #f59e0b;
+}
+
+.card-type-label {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.card-type-label.mine {
+  background-color: #eef2ff;
+  color: #4338ca;
+}
+
+.card-type-label.assigned {
+  background-color: #fffbeb;
+  color: #b45309;
 }
 
 .card-header {

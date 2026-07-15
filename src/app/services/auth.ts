@@ -26,10 +26,31 @@ export class AuthService {
 
   constructor(private http: HttpClient) {
     const storedUser = localStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<User | null>(
-      storedUser ? JSON.parse(storedUser) : null
-    );
+    const token = localStorage.getItem('token');
+    
+    let user: User | null = storedUser ? JSON.parse(storedUser) : null;
+
+    if (token && user && !user.id) {
+      const decoded = this.decodeToken(token);
+      if (decoded && decoded.id) {
+        user.id = decoded.id;
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      }
+    }
+
+    this.currentUserSubject = new BehaviorSubject<User | null>(user);
     this.currentUser$ = this.currentUserSubject.asObservable();
+  }
+
+  private decodeToken(token: string): any {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      const decoded = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+      return JSON.parse(decoded);
+    } catch {
+      return null;
+    }
   }
 
   public get currentUserValue(): User | null {
