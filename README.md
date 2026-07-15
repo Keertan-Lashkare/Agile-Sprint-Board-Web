@@ -86,9 +86,6 @@ Output goes to the `dist/` folder.
 
 ---
 
-
-```
-
 ---
 
 ## Project Structure
