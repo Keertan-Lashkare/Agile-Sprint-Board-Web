@@ -1,6 +1,6 @@
 # Agile Sprint Board — Frontend
 
-Angular 19 frontend for the BiCXO Sprint Board. A Kanban-style task board with drag & drop, infinite scroll, and team task assignment.
+Angular 21.2 frontend for the BiCXO Sprint Board. A Kanban-style task board with drag & drop, infinite scroll, and team task assignment.
 
 **Backend Repo:** https://github.com/Keertan-Lashkare/Agile-Sprint-Board-Api
 
@@ -41,7 +41,7 @@ export const environment = {
 ## Step 3 — Start the App
 
 ```bash
-npm run dev
+ng serve
 ```
 
 App runs at → **http://localhost:4200**
@@ -86,10 +86,7 @@ Output goes to the `dist/` folder.
 
 ---
 
-## Running Tests
 
-```bash
-npm run test
 ```
 
 ---
@@ -114,8 +111,8 @@ src/
 
 ## Tech Stack
 
-- **Framework:** Angular 19
+- **Framework:** Angular 21.2
 - **Language:** TypeScript
 - **Drag & Drop:** Angular CDK
-- **Styling:** Vanilla CSS (Inter font)
-- **Testing:** Vitest
+
+
