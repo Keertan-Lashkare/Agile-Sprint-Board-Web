@@ -25,6 +25,7 @@ export class BoardComponent implements OnInit {
   selectedPriority = 'all';
   filterAssigned: 'all' | 'me' = 'all';
   showModal = false;
+  selectedTask: Task | null = null;
 
   todoPage = 1;
   inProgressPage = 1;
@@ -151,6 +152,12 @@ export class BoardComponent implements OnInit {
   }
 
   onAddTask(): void {
+    this.selectedTask = null;
+    this.showModal = true;
+  }
+
+  onEditTask(task: Task): void {
+    this.selectedTask = task;
     this.showModal = true;
   }
 

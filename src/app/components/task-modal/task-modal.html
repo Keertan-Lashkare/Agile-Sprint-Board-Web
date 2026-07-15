@@ -1,20 +1,20 @@
 <div class="modal-overlay" (click)="onCancel()">
   <div class="modal-box" (click)="$event.stopPropagation()">
-    <h2 class="modal-title">Create Task</h2>
+    <h2 class="modal-title">{{ isEditMode ? 'Edit Task' : 'Create Task' }}</h2>
 
     <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
       <div class="field">
-        <input 
-          type="text" 
-          formControlName="title" 
+        <input
+          type="text"
+          formControlName="title"
           placeholder="Task title"
           [class.has-error]="taskForm.get('title')?.touched && taskForm.get('title')?.invalid"
         >
       </div>
 
       <div class="field">
-        <textarea 
-          formControlName="description" 
+        <textarea
+          formControlName="description"
           placeholder="Task description"
           rows="4"
           [class.has-error]="taskForm.get('description')?.touched && taskForm.get('description')?.invalid"
@@ -33,10 +33,7 @@
 
         <div class="field">
           <label class="field-label">Due Date</label>
-          <input 
-            type="date" 
-            formControlName="dueDate"
-          >
+          <input type="date" formControlName="dueDate">
         </div>
       </div>
 
@@ -61,7 +58,7 @@
       <div class="modal-actions">
         <button type="button" (click)="onCancel()" class="btn-secondary">Cancel</button>
         <button type="submit" [disabled]="taskForm.invalid || isLoading" class="btn-primary">
-          {{ isLoading ? 'Creating...' : 'Create' }}
+          {{ isLoading ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create') }}
         </button>
       </div>
     </form>
