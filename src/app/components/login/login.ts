@@ -50,8 +50,9 @@ export class LoginComponent implements OnInit {
       next: () => {
         this.isLoading = false;
         this.toastService.show('Login successful!', 'success');
+        this.router.navigate(['/board']);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoading = false;
         this.toastService.show(err.error?.message || 'Login failed. Check your credentials.', 'error');
       }

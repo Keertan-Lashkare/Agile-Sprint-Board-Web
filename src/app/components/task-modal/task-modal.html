@@ -1,0 +1,56 @@
+<div class="modal-overlay" (click)="onCancel()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">Create Task</h2>
+
+    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+      <div class="field">
+        <input 
+          type="text" 
+          formControlName="title" 
+          placeholder="Task title"
+          [class.has-error]="taskForm.get('title')?.touched && taskForm.get('title')?.invalid"
+        >
+      </div>
+
+      <div class="field">
+        <textarea 
+          formControlName="description" 
+          placeholder="Task description"
+          rows="4"
+          [class.has-error]="taskForm.get('description')?.touched && taskForm.get('description')?.invalid"
+        ></textarea>
+      </div>
+
+      <div class="grid-fields">
+        <div class="field">
+          <select formControlName="priority">
+            <option value="low">Low Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="high">High Priority</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <input 
+            type="date" 
+            formControlName="dueDate"
+          >
+        </div>
+      </div>
+
+      <div class="checkbox-field">
+        <label>
+          <input type="checkbox" formControlName="assignToMe">
+          <span>Assign to me</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" (click)="onCancel()" class="btn-secondary">Cancel</button>
+        <button type="submit" [disabled]="taskForm.invalid || isLoading" class="btn-primary">
+          {{ isLoading ? 'Creating...' : 'Create' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

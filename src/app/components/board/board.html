@@ -1,0 +1,139 @@
+<div class="board-layout">
+  <header class="navbar">
+    <div class="nav-brand">BiCXO Sprint Board</div>
+    <div class="user-profile">
+      <span>Welcome, {{ userName }}</span>
+      <button (click)="onLogout()" class="btn-logout">Logout</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="filter-controls">
+      <input 
+        type="text" 
+        placeholder="Search tasks..." 
+        (input)="onSearchChange($event)" 
+        class="search-input"
+      >
+      
+      <select (change)="onPriorityFilterChange($event)" class="filter-select">
+        <option value="all">All Priorities</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+
+      <div class="toggle-container">
+        <button 
+          (click)="onToggleFilter('all')" 
+          [class.active]="filterAssigned === 'all'"
+          class="btn-toggle"
+        >
+          All Tasks
+        </button>
+        <button 
+          (click)="onToggleFilter('me')" 
+          [class.active]="filterAssigned === 'me'"
+          class="btn-toggle"
+        >
+          Assigned to Me
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="board-columns" cdkDropListGroup>
+    <div class="column-container">
+      <div class="column-header">
+        <h2>To Do</h2>
+        <span class="task-count">{{ getFilteredTasks(todoTasks).length }}</span>
+      </div>
+      <div 
+        id="todo"
+        cdkDropList 
+        [cdkDropListData]="todoTasks" 
+        (cdkDropListDropped)="onDrop($event)"
+        class="task-list"
+      >
+        <div 
+          *ngFor="let task of getFilteredTasks(todoTasks)" 
+          cdkDrag 
+          class="task-card"
+        >
+          <div class="card-header">
+            <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
+            <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+          </div>
+          <h3 class="card-title">{{ task.title }}</h3>
+          <p class="card-description">{{ task.description }}</p>
+          <div class="card-footer" *ngIf="task.dueDate || task.assignee">
+            <span class="due-date" *ngIf="task.dueDate">{{ task.dueDate }}</span>
+            <span class="assignee" *ngIf="task.assignee">{{ task.assignee.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="column-container">
+      <div class="column-header">
+        <h2>In Progress</h2>
+        <span class="task-count">{{ getFilteredTasks(inProgressTasks).length }}</span>
+      </div>
+      <div 
+        id="in_progress"
+        cdkDropList 
+        [cdkDropListData]="inProgressTasks" 
+        (cdkDropListDropped)="onDrop($event)"
+        class="task-list"
+      >
+        <div 
+          *ngFor="let task of getFilteredTasks(inProgressTasks)" 
+          cdkDrag 
+          class="task-card"
+        >
+          <div class="card-header">
+            <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
+            <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+          </div>
+          <h3 class="card-title">{{ task.title }}</h3>
+          <p class="card-description">{{ task.description }}</p>
+          <div class="card-footer" *ngIf="task.dueDate || task.assignee">
+            <span class="due-date" *ngIf="task.dueDate">{{ task.dueDate }}</span>
+            <span class="assignee" *ngIf="task.assignee">{{ task.assignee.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="column-container">
+      <div class="column-header">
+        <h2>Done</h2>
+        <span class="task-count">{{ getFilteredTasks(doneTasks).length }}</span>
+      </div>
+      <div 
+        id="done"
+        cdkDropList 
+        [cdkDropListData]="doneTasks" 
+        (cdkDropListDropped)="onDrop($event)"
+        class="task-list"
+      >
+        <div 
+          *ngFor="let task of getFilteredTasks(doneTasks)" 
+          cdkDrag 
+          class="task-card"
+        >
+          <div class="card-header">
+            <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
+            <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+          </div>
+          <h3 class="card-title">{{ task.title }}</h3>
+          <p class="card-description">{{ task.description }}</p>
+          <div class="card-footer" *ngIf="task.dueDate || task.assignee">
+            <span class="due-date" *ngIf="task.dueDate">{{ task.dueDate }}</span>
+            <span class="assignee" *ngIf="task.assignee">{{ task.assignee.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

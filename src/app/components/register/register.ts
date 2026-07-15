@@ -55,7 +55,7 @@ export class RegisterComponent implements OnInit {
           this.router.navigate(['/login']);
         }, 2000);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoading = false;
         this.toastService.show(err.error?.message || 'Registration failed. Try again.', 'error');
       }
