@@ -196,6 +196,15 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
+.done-card {
+  opacity: 0.75;
+}
+
+.done-card .card-title {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;

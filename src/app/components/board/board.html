@@ -126,11 +126,10 @@
         (cdkDropListDropped)="onDrop($event)"
         class="task-list"
       >
-        <div *ngFor="let task of getPaginatedTasks(doneTasks, donePage)" cdkDrag [cdkDragData]="task" class="task-card">
+        <div *ngFor="let task of getPaginatedTasks(doneTasks, donePage)" cdkDrag [cdkDragData]="task" class="task-card done-card">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
             <div class="card-actions">
-              <button (click)="onEditTask(task)" class="btn-edit">✎</button>
               <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
             </div>
           </div>
