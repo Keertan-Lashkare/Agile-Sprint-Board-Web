@@ -1,12 +1,12 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { DragDropModule, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Task, TaskService } from '../../services/task';
 import { AuthService } from '../../services/auth';
 import { ToastService } from '../../services/toast';
 import { TaskModalComponent } from '../task-modal/task-modal';
-import { Subscription } from 'rxjs';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-board',
@@ -14,10 +14,14 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./board.css'],
   imports: [CommonModule, DragDropModule, TaskModalComponent]
 })
-export class BoardComponent implements OnInit, OnDestroy {
+export class BoardComponent implements OnInit {
   todoTasks: Task[] = [];
   inProgressTasks: Task[] = [];
   doneTasks: Task[] = [];
+
+  todoTotal = 0;
+  inProgressTotal = 0;
+  doneTotal = 0;
 
   userName = '';
   currentUserId: number | null = null;
@@ -31,9 +35,15 @@ export class BoardComponent implements OnInit, OnDestroy {
   todoPage = 1;
   inProgressPage = 1;
   donePage = 1;
-  pageSize = 4;
+  readonly pageSize = 10;
 
-  private userSub!: Subscription;
+  todoLoadedAll = false;
+  inProgressLoadedAll = false;
+  doneLoadedAll = false;
+
+  loadingTodo = false;
+  loadingInProgress = false;
+  loadingDone = false;
 
   constructor(
     private taskService: TaskService,
@@ -44,46 +54,127 @@ export class BoardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.userSub = this.authService.currentUser$.subscribe({
+    this.authService.currentUser$.subscribe({
       next: (user) => {
         if (user) {
           this.userName = user.name;
           this.currentUserId = user.id;
-          this.loadTasks();
+          this.loadAllColumns();
           this.cdr.markForCheck();
         }
       }
     });
   }
 
-  ngOnDestroy(): void {
-    if (this.userSub) {
-      this.userSub.unsubscribe();
-    }
+  getAssignedParam(): number | null {
+    return this.filterAssigned === 'me' ? this.currentUserId : null;
   }
 
-  loadTasks(): void {
-    this.taskService.getTasks().subscribe({
-      next: (tasks) => {
-        this.todoTasks = tasks.filter(t => t.column === 'todo');
-        this.inProgressTasks = tasks.filter(t => t.column === 'in_progress');
-        this.doneTasks = tasks.filter(t => t.column === 'done');
-        this.clampPages();
+  loadAllColumns(): void {
+    this.todoPage = 1;
+    this.inProgressPage = 1;
+    this.donePage = 1;
+
+    this.todoLoadedAll = false;
+    this.inProgressLoadedAll = false;
+    this.doneLoadedAll = false;
+
+    this.loadingTodo = true;
+    this.loadingInProgress = true;
+    this.loadingDone = true;
+
+    forkJoin({
+      todo: this.taskService.getTasks('todo', this.todoPage, this.pageSize, this.searchText, this.selectedPriority, this.getAssignedParam()),
+      inProgress: this.taskService.getTasks('in_progress', this.inProgressPage, this.pageSize, this.searchText, this.selectedPriority, this.getAssignedParam()),
+      done: this.taskService.getTasks('done', this.donePage, this.pageSize, this.searchText, this.selectedPriority, this.getAssignedParam())
+    }).subscribe({
+      next: ({ todo, inProgress, done }) => {
+        this.todoTasks = todo.tasks;
+        this.todoTotal = todo.total;
+        this.todoLoadedAll = this.todoTasks.length >= todo.total;
+
+        this.inProgressTasks = inProgress.tasks;
+        this.inProgressTotal = inProgress.total;
+        this.inProgressLoadedAll = this.inProgressTasks.length >= inProgress.total;
+
+        this.doneTasks = done.tasks;
+        this.doneTotal = done.total;
+        this.doneLoadedAll = this.doneTasks.length >= done.total;
+
+        this.loadingTodo = false;
+        this.loadingInProgress = false;
+        this.loadingDone = false;
         this.cdr.markForCheck();
       },
       error: () => {
+        this.loadingTodo = false;
+        this.loadingInProgress = false;
+        this.loadingDone = false;
         this.toastService.show('Failed to load tasks.', 'error');
       }
     });
   }
 
-  clampPages(): void {
-    if (this.todoPage > this.getTotalPages(this.todoTasks)) this.todoPage = this.getTotalPages(this.todoTasks);
-    if (this.inProgressPage > this.getTotalPages(this.inProgressTasks)) this.inProgressPage = this.getTotalPages(this.inProgressTasks);
-    if (this.donePage > this.getTotalPages(this.doneTasks)) this.donePage = this.getTotalPages(this.doneTasks);
+  loadNextPage(column: 'todo' | 'in_progress' | 'done'): void {
+    if (column === 'todo') {
+      if (this.loadingTodo || this.todoLoadedAll) return;
+      this.loadingTodo = true;
+      this.todoPage++;
+      this.taskService.getTasks('todo', this.todoPage, this.pageSize, this.searchText, this.selectedPriority, this.getAssignedParam()).subscribe({
+        next: (res) => {
+          this.todoTasks = [...this.todoTasks, ...res.tasks];
+          this.todoTotal = res.total;
+          this.todoLoadedAll = this.todoTasks.length >= res.total;
+          this.loadingTodo = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.loadingTodo = false;
+        }
+      });
+    } else if (column === 'in_progress') {
+      if (this.loadingInProgress || this.inProgressLoadedAll) return;
+      this.loadingInProgress = true;
+      this.inProgressPage++;
+      this.taskService.getTasks('in_progress', this.inProgressPage, this.pageSize, this.searchText, this.selectedPriority, this.getAssignedParam()).subscribe({
+        next: (res) => {
+          this.inProgressTasks = [...this.inProgressTasks, ...res.tasks];
+          this.inProgressTotal = res.total;
+          this.inProgressLoadedAll = this.inProgressTasks.length >= res.total;
+          this.loadingInProgress = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.loadingInProgress = false;
+        }
+      });
+    } else {
+      if (this.loadingDone || this.doneLoadedAll) return;
+      this.loadingDone = true;
+      this.donePage++;
+      this.taskService.getTasks('done', this.donePage, this.pageSize, this.searchText, this.selectedPriority, this.getAssignedParam()).subscribe({
+        next: (res) => {
+          this.doneTasks = [...this.doneTasks, ...res.tasks];
+          this.doneTotal = res.total;
+          this.doneLoadedAll = this.doneTasks.length >= res.total;
+          this.loadingDone = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.loadingDone = false;
+        }
+      });
+    }
   }
 
-  getColumnArray(column: 'todo' | 'in_progress' | 'done'): Task[] {
+  onScroll(event: Event, column: 'todo' | 'in_progress' | 'done'): void {
+    const el = event.target as HTMLElement;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 20) {
+      this.loadNextPage(column);
+    }
+  }
+
+  getColumnTasks(column: 'todo' | 'in_progress' | 'done'): Task[] {
     if (column === 'todo') return this.todoTasks;
     if (column === 'in_progress') return this.inProgressTasks;
     return this.doneTasks;
@@ -98,29 +189,23 @@ export class BoardComponent implements OnInit, OnDestroy {
 
     const task = event.item.data as Task;
     const newColumn = this.getColumnName(event.container.id);
-
-    const sourceArray = event.previousContainer.data;
+    const oldColumn = task.column;
+    const sourceArray = this.getColumnTasks(oldColumn);
     const sourceIndex = sourceArray.findIndex(t => t.id === task.id);
     if (sourceIndex === -1) return;
 
-    const [movedTask] = sourceArray.splice(sourceIndex, 1);
-    movedTask.column = newColumn;
-    const targetArray = this.getColumnArray(newColumn);
-    targetArray.unshift(movedTask);
-
-    this.clampPages();
+    sourceArray.splice(sourceIndex, 1);
+    task.column = newColumn;
     this.cdr.markForCheck();
 
     this.taskService.updateTask(task.id, { column: newColumn }).subscribe({
       next: () => {
-        this.cdr.markForCheck();
+        this.loadAllColumns();
       },
       error: () => {
-        targetArray.splice(targetArray.indexOf(movedTask), 1);
-        sourceArray.splice(sourceIndex, 0, movedTask);
-        movedTask.column = task.column;
+        sourceArray.splice(sourceIndex, 0, task);
+        task.column = oldColumn;
         this.toastService.show('Failed to move task.', 'error');
-        this.clampPages();
         this.cdr.markForCheck();
       }
     });
@@ -132,55 +217,27 @@ export class BoardComponent implements OnInit, OnDestroy {
     return 'todo';
   }
 
+  canDrag(task: Task): boolean {
+    return task.createdBy === this.currentUserId || task.assignedTo === this.currentUserId;
+  }
+
+  canDelete(task: Task): boolean {
+    return task.createdBy === this.currentUserId;
+  }
+
   onSearchChange(event: Event): void {
     this.searchText = (event.target as HTMLInputElement).value.toLowerCase();
-    this.todoPage = 1;
-    this.inProgressPage = 1;
-    this.donePage = 1;
-    this.cdr.markForCheck();
+    this.loadAllColumns();
   }
 
   onPriorityFilterChange(event: Event): void {
     this.selectedPriority = (event.target as HTMLSelectElement).value;
-    this.todoPage = 1;
-    this.inProgressPage = 1;
-    this.donePage = 1;
-    this.cdr.markForCheck();
+    this.loadAllColumns();
   }
 
   onToggleFilter(value: 'all' | 'me'): void {
     this.filterAssigned = value;
-    this.todoPage = 1;
-    this.inProgressPage = 1;
-    this.donePage = 1;
-    this.cdr.markForCheck();
-  }
-
-  getFilteredTasks(tasks: Task[]): Task[] {
-    return tasks.filter(task => {
-      const isOwnerOrAssignee = task.createdBy === this.currentUserId || task.assignedTo === this.currentUserId;
-      if (!isOwnerOrAssignee) {
-        return false;
-      }
-      const matchesSearch = task.title.toLowerCase().includes(this.searchText) ||
-                            task.description.toLowerCase().includes(this.searchText);
-      const matchesPriority = this.selectedPriority === 'all' || task.priority === this.selectedPriority;
-      const matchesAssigned = this.filterAssigned === 'all' || task.assignedTo === this.currentUserId;
-      return matchesSearch && matchesPriority && matchesAssigned;
-    });
-  }
-
-  getPaginatedTasks(tasks: Task[], page: number): Task[] {
-    const filtered = this.getFilteredTasks(tasks);
-    return filtered.slice((page - 1) * this.pageSize, page * this.pageSize);
-  }
-
-  getTotalPages(tasks: Task[]): number {
-    return Math.ceil(this.getFilteredTasks(tasks).length / this.pageSize) || 1;
-  }
-
-  canDrag(task: Task): boolean {
-    return task.createdBy === this.currentUserId || task.assignedTo === this.currentUserId;
+    this.loadAllColumns();
   }
 
   onAddTask(): void {
@@ -202,19 +259,15 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   onTaskCreated(): void {
     this.showModal = false;
-    this.loadTasks();
+    this.loadAllColumns();
     this.cdr.markForCheck();
   }
 
   onDeleteTask(id: number): void {
     this.taskService.deleteTask(id).subscribe({
       next: () => {
-        this.todoTasks = this.todoTasks.filter(t => t.id !== id);
-        this.inProgressTasks = this.inProgressTasks.filter(t => t.id !== id);
-        this.doneTasks = this.doneTasks.filter(t => t.id !== id);
-        this.clampPages();
         this.toastService.show('Task deleted.', 'success');
-        this.cdr.markForCheck();
+        this.loadAllColumns();
       },
       error: () => {
         this.toastService.show('Failed to delete task.', 'error');

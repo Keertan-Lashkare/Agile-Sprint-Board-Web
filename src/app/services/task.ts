@@ -19,6 +19,11 @@ export interface Task {
   assignee?: User;
 }
 
+export interface TaskPage {
+  tasks: Task[];
+  total: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,12 +32,28 @@ export class TaskService {
 
   constructor(private http: HttpClient) {}
 
-  getTasks(page?: number, limit?: number): Observable<Task[]> {
+  getTasks(
+    column?: 'todo' | 'in_progress' | 'done',
+    page?: number,
+    limit?: number,
+    search?: string,
+    priority?: string,
+    assignedTo?: number | null
+  ): Observable<TaskPage> {
     let url = this.apiUrl;
-    if (page !== undefined && limit !== undefined) {
-      url = `${this.apiUrl}?page=${page}&limit=${limit}`;
+    const params: string[] = [];
+
+    if (column !== undefined) params.push(`column=${column}`);
+    if (page !== undefined) params.push(`page=${page}`);
+    if (limit !== undefined) params.push(`limit=${limit}`);
+    if (search) params.push(`search=${encodeURIComponent(search)}`);
+    if (priority && priority !== 'all') params.push(`priority=${priority}`);
+    if (assignedTo !== undefined && assignedTo !== null) params.push(`assignedTo=${assignedTo}`);
+
+    if (params.length > 0) {
+      url = `${this.apiUrl}?${params.join('&')}`;
     }
-    return this.http.get<Task[]>(url);
+    return this.http.get<TaskPage>(url);
   }
 
   createTask(taskData: Partial<Task>): Observable<Task> {

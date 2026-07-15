@@ -33,10 +33,12 @@
   </div>
 
   <div class="board-columns">
+
+    <!-- TO DO -->
     <div class="column-container">
       <div class="column-header">
         <h2>To Do</h2>
-        <span class="task-count">{{ getFilteredTasks(todoTasks).length }}</span>
+        <span class="task-count">{{ todoTotal }}</span>
       </div>
       <div
         id="todo"
@@ -45,13 +47,14 @@
         [cdkDropListConnectedTo]="['in_progress']"
         (cdkDropListDropped)="onDrop($event)"
         class="task-list"
+        (scroll)="onScroll($event, 'todo')"
       >
-        <div *ngFor="let task of getPaginatedTasks(todoTasks, todoPage)" cdkDrag [cdkDragData]="task" [cdkDragDisabled]="!canDrag(task)" class="task-card" [class.locked-card]="!canDrag(task)" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
+        <div *ngFor="let task of todoTasks" cdkDrag [cdkDragData]="task" [cdkDragDisabled]="!canDrag(task)" class="task-card" [class.locked-card]="!canDrag(task)" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
             <div class="card-actions" *ngIf="canDrag(task)">
               <button (click)="onEditTask(task)" class="btn-edit">✎</button>
-              <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+              <button *ngIf="canDelete(task)" (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
             </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
@@ -63,21 +66,13 @@
           </div>
         </div>
       </div>
-      <div class="pagination-panel" *ngIf="getTotalPages(todoTasks) > 1">
-        <button (click)="todoPage = todoPage - 1" [disabled]="todoPage === 1" class="btn-page">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <span class="page-info">{{ todoPage }} of {{ getTotalPages(todoTasks) }}</span>
-        <button (click)="todoPage = todoPage + 1" [disabled]="todoPage === getTotalPages(todoTasks)" class="btn-page">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
-      </div>
     </div>
 
+    <!-- IN PROGRESS -->
     <div class="column-container">
       <div class="column-header">
         <h2>In Progress</h2>
-        <span class="task-count">{{ getFilteredTasks(inProgressTasks).length }}</span>
+        <span class="task-count">{{ inProgressTotal }}</span>
       </div>
       <div
         id="in_progress"
@@ -86,13 +81,14 @@
         [cdkDropListConnectedTo]="['done']"
         (cdkDropListDropped)="onDrop($event)"
         class="task-list"
+        (scroll)="onScroll($event, 'in_progress')"
       >
-        <div *ngFor="let task of getPaginatedTasks(inProgressTasks, inProgressPage)" cdkDrag [cdkDragData]="task" [cdkDragDisabled]="!canDrag(task)" class="task-card" [class.locked-card]="!canDrag(task)" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
+        <div *ngFor="let task of inProgressTasks" cdkDrag [cdkDragData]="task" [cdkDragDisabled]="!canDrag(task)" class="task-card" [class.locked-card]="!canDrag(task)" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
             <div class="card-actions" *ngIf="canDrag(task)">
               <button (click)="onEditTask(task)" class="btn-edit">✎</button>
-              <button (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+              <button *ngIf="canDelete(task)" (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
             </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
@@ -104,21 +100,13 @@
           </div>
         </div>
       </div>
-      <div class="pagination-panel" *ngIf="getTotalPages(inProgressTasks) > 1">
-        <button (click)="inProgressPage = inProgressPage - 1" [disabled]="inProgressPage === 1" class="btn-page">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <span class="page-info">{{ inProgressPage }} of {{ getTotalPages(inProgressTasks) }}</span>
-        <button (click)="inProgressPage = inProgressPage + 1" [disabled]="inProgressPage === getTotalPages(inProgressTasks)" class="btn-page">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
-      </div>
     </div>
 
+    <!-- DONE -->
     <div class="column-container">
       <div class="column-header">
         <h2>Done</h2>
-        <span class="task-count">{{ getFilteredTasks(doneTasks).length }}</span>
+        <span class="task-count">{{ doneTotal }}</span>
       </div>
       <div
         id="done"
@@ -127,10 +115,14 @@
         [cdkDropListConnectedTo]="[]"
         (cdkDropListDropped)="onDrop($event)"
         class="task-list"
+        (scroll)="onScroll($event, 'done')"
       >
-        <div *ngFor="let task of getPaginatedTasks(doneTasks, donePage)" cdkDrag [cdkDragData]="task" class="task-card done-card" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
+        <div *ngFor="let task of doneTasks" cdkDrag [cdkDragData]="task" class="task-card done-card" [class.card-mine]="task.createdBy === currentUserId" [class.card-assigned]="task.createdBy !== currentUserId && task.assignedTo === currentUserId">
           <div class="card-header">
             <span class="badge" [ngClass]="task.priority">{{ task.priority }}</span>
+            <div class="card-actions" *ngIf="canDrag(task)">
+              <button *ngIf="canDelete(task)" (click)="onDeleteTask(task.id)" class="btn-delete">×</button>
+            </div>
           </div>
           <h3 class="card-title">{{ task.title }}</h3>
           <p class="card-description">{{ task.description }}</p>
@@ -141,16 +133,8 @@
           </div>
         </div>
       </div>
-      <div class="pagination-panel" *ngIf="getTotalPages(doneTasks) > 1">
-        <button (click)="donePage = donePage - 1" [disabled]="donePage === 1" class="btn-page">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <span class="page-info">{{ donePage }} of {{ getTotalPages(doneTasks) }}</span>
-        <button (click)="donePage = donePage + 1" [disabled]="donePage === getTotalPages(doneTasks)" class="btn-page">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
-      </div>
     </div>
+
   </div>
 </div>
 
