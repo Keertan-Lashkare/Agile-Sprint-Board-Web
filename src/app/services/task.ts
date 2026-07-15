@@ -27,8 +27,12 @@ export class TaskService {
 
   constructor(private http: HttpClient) {}
 
-  getTasks(): Observable<Task[]> {
-    return this.http.get<Task[]>(this.apiUrl);
+  getTasks(page?: number, limit?: number): Observable<Task[]> {
+    let url = this.apiUrl;
+    if (page !== undefined && limit !== undefined) {
+      url = `${this.apiUrl}?page=${page}&limit=${limit}`;
+    }
+    return this.http.get<Task[]>(url);
   }
 
   createTask(taskData: Partial<Task>): Observable<Task> {

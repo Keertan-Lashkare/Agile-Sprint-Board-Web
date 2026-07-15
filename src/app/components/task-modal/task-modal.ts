@@ -1,7 +1,7 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TaskService } from '../../services/task';
-import { AuthService } from '../../services/auth';
+import { AuthService, User } from '../../services/auth';
 import { ToastService } from '../../services/toast';
 import { CommonModule } from '@angular/common';
 
@@ -17,6 +17,8 @@ export class TaskModalComponent implements OnInit {
 
   taskForm!: FormGroup;
   isLoading = false;
+  users: User[] = [];
+  currentUserId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -26,12 +28,31 @@ export class TaskModalComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const currentUser = this.authService.currentUserValue;
+    if (currentUser) {
+      this.currentUserId = currentUser.id;
+    }
+
     this.taskForm = this.fb.group({
       title: ['', [Validators.required]],
       description: ['', [Validators.required]],
       priority: ['low', [Validators.required]],
       dueDate: [''],
-      assignToMe: [false]
+      assignToTeammate: [false],
+      assignedTo: ['']
+    });
+
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.authService.getUsers().subscribe({
+      next: (usersList) => {
+        this.users = usersList.filter(u => u.id !== this.currentUserId);
+      },
+      error: (err: any) => {
+        this.toastService.show(err.error?.message || 'Failed to load users list.', 'error');
+      }
     });
   }
 
@@ -45,15 +66,14 @@ export class TaskModalComponent implements OnInit {
     }
 
     this.isLoading = true;
-    const { title, description, priority, dueDate, assignToMe } = this.taskForm.value;
-    const currentUserId = this.authService.currentUserValue?.id;
+    const { title, description, priority, dueDate, assignToTeammate, assignedTo } = this.taskForm.value;
 
     const taskData = {
       title,
       description,
       priority,
       dueDate: dueDate || null,
-      assignedTo: assignToMe && currentUserId ? currentUserId : null
+      assignedTo: assignToTeammate && assignedTo ? parseInt(assignedTo) : null
     };
 
     this.taskService.createTask(taskData).subscribe({

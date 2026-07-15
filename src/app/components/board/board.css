@@ -51,6 +51,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
+  height: 70px;
 }
 
 .filter-controls {
@@ -134,8 +135,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   padding: 0 24px 24px 24px;
-  flex: 1;
-  overflow-y: auto;
+  height: calc(100vh - 160px);
 }
 
 .column-container {
@@ -144,7 +144,7 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  max-height: 100%;
+  height: 100%;
 }
 
 .column-header {
@@ -152,6 +152,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .column-header h2 {
@@ -172,8 +173,8 @@
 
 .task-list {
   flex: 1;
-  overflow-y: auto;
-  min-height: 150px;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .task-card {
@@ -253,6 +254,26 @@
   margin: 0 0 12px 0;
   line-height: 1.4;
   white-space: pre-wrap;
+  max-height: 75px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.card-description::-webkit-scrollbar {
+  width: 4px;
+}
+
+.card-description::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.card-description::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 4px;
+}
+
+.card-description::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
 }
 
 .card-footer {
@@ -276,6 +297,55 @@
   padding: 2px 6px;
   border-radius: 4px;
   font-weight: 500;
+}
+
+.pagination-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 12px;
+  flex-shrink: 0;
+}
+
+.btn-page {
+  width: 28px;
+  height: 28px;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease-in-out;
+  padding: 0;
+}
+
+.btn-page svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-page:hover:not(:disabled) {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.btn-page:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  user-select: none;
 }
 
 .cdk-drag-preview {

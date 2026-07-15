@@ -68,6 +68,10 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users`);
+  }
+
   private setSession(authResult: AuthResponse): void {
     localStorage.setItem('token', authResult.token);
     localStorage.setItem('currentUser', JSON.stringify(authResult.user));

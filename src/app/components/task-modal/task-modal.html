@@ -23,14 +23,16 @@
 
       <div class="grid-fields">
         <div class="field">
+          <label class="field-label">Priority</label>
           <select formControlName="priority">
-            <option value="low">Low Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="high">High Priority</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
           </select>
         </div>
 
         <div class="field">
+          <label class="field-label">Due Date</label>
           <input 
             type="date" 
             formControlName="dueDate"
@@ -40,9 +42,20 @@
 
       <div class="checkbox-field">
         <label>
-          <input type="checkbox" formControlName="assignToMe">
-          <span>Assign to me</span>
+          <input type="checkbox" formControlName="assignToTeammate">
+          <span class="custom-checkbox"></span>
+          <span class="checkbox-label">Assign to a teammate</span>
         </label>
+      </div>
+
+      <div class="field teammate-select-field" *ngIf="taskForm.get('assignToTeammate')?.value">
+        <label class="field-label">Teammate</label>
+        <select formControlName="assignedTo">
+          <option value="">-- Select Teammate --</option>
+          <option *ngFor="let user of users" [value]="user.id">
+            {{ user.name }} ({{ user.email }})
+          </option>
+        </select>
       </div>
 
       <div class="modal-actions">
